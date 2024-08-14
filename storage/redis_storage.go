@@ -30,14 +30,14 @@ func (r *RedisStorage) SaveURL(originalURL string) (string, error) {
 	if err == redis.Nil { // Not found, create a new short URL
 		shortURL = generateShortURL()
 
-		// Store the hash to short URL mapping
-		err = r.client.Set(r.ctx, "hash:"+urlHash, shortURL, 0).Err()
+		// Store the hash to short URL mapping with a 48-hour expiration
+		err = r.client.Set(r.ctx, "hash:"+urlHash, shortURL, 48*time.Hour).Err()
 		if err != nil {
 			return "", err
 		}
 
-		// Store the short URL to original URL mapping
-		err = r.client.Set(r.ctx, "short:"+shortURL, originalURL, 0).Err()
+		// Store the short URL to original URL mapping with a 48-hour expiration
+		err = r.client.Set(r.ctx, "short:"+shortURL, originalURL, 48*time.Hour).Err()
 		if err != nil {
 			return "", err
 		}
@@ -49,7 +49,18 @@ func (r *RedisStorage) SaveURL(originalURL string) (string, error) {
 }
 
 func (r *RedisStorage) GetURL(shortURL string) (string, error) {
-	return r.client.Get(r.ctx, "short:"+shortURL).Result()
+	originalURL, err := r.client.Get(r.ctx, "short:"+shortURL).Result()
+	if err != nil {
+		return "", err
+	}
+
+	// Reset the expiration time to 48 hours
+	err = r.client.Expire(r.ctx, "short:"+shortURL, 48*time.Hour).Err()
+	if err != nil {
+		return "", err
+	}
+
+	return originalURL, nil
 }
 
 func (r *RedisStorage) hashURL(url string) string {
@@ -57,12 +68,11 @@ func (r *RedisStorage) hashURL(url string) string {
 	return hex.EncodeToString(hash[:])
 }
 
-// Generate a unique short URL
 func generateShortURL() string {
-	b := make([]byte, 4)
+	b := make([]byte, 3) // 256^3=16,777,216 uniqueu urls in redis any time
 	_, err := rand.Read(b)
 	if err != nil {
-		panic(err) // handle error in production code
+		panic(err) //idk
 	}
-	return hex.EncodeToString(b) + time.Now().Format("060102150405")
+	return hex.EncodeToString(b)
 }

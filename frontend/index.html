@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>skny.link - Shorten Your URLs</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            color: #333;
+        }
+        .container {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px 30px;
+            max-width: 400px;
+            text-align: center;
+        }
+        h1 {
+            margin-bottom: 20px;
+            font-size: 24px;
+            color: #4A90E2;
+        }
+        p {
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+        input[type="url"] {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        button {
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            background-color: #4A90E2;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #357ABD;
+        }
+        #result-container {
+            margin-top: 20px;
+            display: none;
+        }
+        #result {
+            font-size: 16px;
+            margin-bottom: 10px;
+            word-wrap: break-word;
+            color: #4A90E2;
+            cursor: pointer;
+        }
+        #result:hover {
+            text-decoration: underline;
+        }
+        #copy-notification {
+            margin-top: 10px;
+            font-size: 14px;
+            color: green;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Welcome to skny.link</h1>
+    <p>Shorten your long URLs into skny, easy-to-share links.</p>
+    <form id="shorten-form">
+        <input type="url" id="url-input" placeholder="Enter your long URL here..." required>
+        <button type="submit">Shorten URL</button>
+    </form>
+    <div id="result-container">
+        <p id="result"></p>
+        <p id="copy-notification">Shortened URL copied to clipboard!</p>
+    </div>
+</div>
+
+<script>
+    document.getElementById('shorten-form').addEventListener('submit', async function(event) {
+        event.preventDefault();
+        const urlInput = document.getElementById('url-input').value;
+        const response = await fetch('/api/shorten', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ url: urlInput }),
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+            const shortenedUrl = `https://skny.link/${result.short_url}`;
+            const resultContainer = document.getElementById('result-container');
+            const resultElement = document.getElementById('result');
+            const copyNotification = document.getElementById('copy-notification');
+
+            resultElement.textContent = `Shortened URL: ${shortenedUrl}`;
+            resultContainer.style.display = 'block';
+
+            // clippy 
+            navigator.clipboard.writeText(shortenedUrl).then(() => {
+                // notification
+                copyNotification.style.display = 'block';
+                setTimeout(() => {
+                    copyNotification.style.display = 'none';
+                }, 2000);
+            });
+
+            resultElement.addEventListener('click', () => {
+                navigator.clipboard.writeText(shortenedUrl).then(() => {
+                    copyNotification.textContent = 'Shortened URL copied to clipboard!';
+                    copyNotification.style.display = 'block';
+                    setTimeout(() => {
+                        copyNotification.style.display = 'none';
+                    }, 2000);
+                });
+            });
+        } else {
+            document.getElementById('result').textContent = 'Error shortening the URL.';
+        }
+    });
+</script>
+
+</body>
+</html>
