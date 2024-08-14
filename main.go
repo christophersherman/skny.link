@@ -11,11 +11,10 @@ import (
 func main() {
 	r := mux.NewRouter()
 
-	// Define the routes
+	//move routes or keep simple? hmm
 	r.HandleFunc("/shorten", handlers.ShortenURL).Methods("POST")
 	r.HandleFunc("/{shortURL}", handlers.RedirectURL).Methods("GET")
 
-	// Start the server
 	log.Println("Starting server on :8080")
 	if err := http.ListenAndServe(":8080", r); err != nil {
 		log.Fatalf("Could not start server: %s\n", err)

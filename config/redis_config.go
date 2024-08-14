@@ -3,6 +3,7 @@ package config
 import (
 	"context"
 	"log"
+	"os"
 
 	"github.com/go-redis/redis/v8"
 )
@@ -11,12 +12,12 @@ var ctx = context.Background()
 
 func NewRedisClient() *redis.Client {
 	rdb := redis.NewClient(&redis.Options{
-		Addr:     "redis:6379", // Use the correct Redis server address in production
-		Password: "",           // No password set if empty
-		DB:       0,            // Default DB
+		Addr:     "redis:6379",
+		Password: os.Getenv("REDIS_PASSWORD"),
+		DB:       0,
 	})
 
-	// Ping the Redis server to ensure it's working
+	// Ping the Redis server
 	pong, err := rdb.Ping(ctx).Result()
 	if err != nil {
 		log.Fatalf("Could not connect to Redis: %v", err)

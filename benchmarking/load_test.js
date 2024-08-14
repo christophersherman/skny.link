@@ -3,14 +3,15 @@ import { sleep, check } from 'k6';
 
 export let options = {
     stages: [
-        { duration: '30s', target: 2500 }, // Ramp-up to 100 users over 30 seconds
-        { duration: '1m', target: 5000 },  // Hold at 200 users for 1 minute
-        { duration: '30s', target: 0 },   // Ramp-down to 0 users over 30 seconds
+        { duration: '30s', target: 10000}, // ramp up
+        { duration: '1m', target: 20000}, //hold
+        { duration: '30s', target: 0}, //ramp down
+        
     ],
 };
 
 export default function () {
-    let url = 'http://kingoftheheap.dev/shorten';
+    let url = 'https://skny.link/shorten';
     let payload = JSON.stringify({
         url: 'https://www.example.com/' + Math.random().toString(36).substring(7)
     });
@@ -27,5 +28,5 @@ export default function () {
         'response time is < 400ms': (r) => r.timings.duration < 400,
     });
 
-    sleep(1); // Simulate some delay between requests
+    sleep(1); // delay
 }
