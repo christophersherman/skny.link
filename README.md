@@ -1,21 +1,21 @@
 # skny.link
 
-Welcome to **skny.link** – a **free, hyperscalable URL shortener** designed to be fast, reliable, and easy to use. Whether you need a short link for social media, marketing campaigns, or just to share with friends, skny.link has got you covered.
+Welcome to **skny.link** – a **free, hyperscalable URL shortener** designed to be fast, reliable, and easy to use. 
 
-## 🚀 Features
+## Purpose
 
-- **Free to Use**: No sign-up required, simply shorten your links and share them instantly.
-- **Hyperscalable**: Built with modern technologies, skny.link can handle millions of requests per day, ensuring high availability and performance even under heavy traffic.
-- **Customizable**: Choose your own custom aliases for shortened URLs.
-- **Analytics (Coming Soon)**: Track how your shortened links are performing with detailed analytics and insights.
+Emulating managed complexity to practice practical production engineering. This project is mostly for practice desigining a highly available, robust application.  
+
+This app can, and will, become more complex as I try to build something that can scale to millions of simulated users. For example, I picked Redis for speed but this will not scale yet until I configure Redis replication (master-slave) or Redis cluster to achieve meaningful horizontal scalability. 
+
 
 ## 🛠️ Technology Stack
 
 skny.link is powered by:
 
-- **Go**: The core backend is written in Go, ensuring fast performance and efficient concurrency.
+- **Go**: The core backend is written in Go, ensuring fast performance and efficient concurrency(coming soon). I also personally love Go's build simplicity for CI/CD purposes. 
 - **Redis**: Used for quick read and write operations, providing ultra-fast access to frequently used URLs.
  **Docker & Docker Compose**: All services are containerized, making deployment and scaling a breeze.
 - **Nginx**: Serving as the load balancer, it efficiently distributes traffic across multiple instances.
-- **Kubernetes (Optional)**: For large-scale deployments, skny.link can be deployed on Kubernetes, allowing you to easily manage and scale the service.
+- **Kubernetes (Optional)**: The scalability is mostly derived from K8s horizontal pod autoscaling in response to increased loads. I will host this app on K8s until my spot user node pools get evicted.
 

@@ -16,35 +16,48 @@ spec:
   - host: skny.link
     http:
       paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: skny-link-frontend  # Service for the HTML frontend
-            port:
-              number: 80
       - path: /api
         pathType: Prefix
         backend:
           service:
-            name: url-shortener-app  # Service for the API backend
+            name: url-shortener-app
             port:
               number: 8080
-
+      - path: /
+        pathType: Exact
+        backend:
+          service:
+            name: skny-link-frontend
+            port:
+              number: 80
+      - path: / # catch-all rule for shortened URLs
+        pathType: Prefix
+        backend:
+          service:
+            name: url-shortener-app
+            port:
+              number: 8080
   - host: www.skny.link
     http:
       paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: skny-link-frontend  # Service for the HTML frontend
-            port:
-              number: 80
       - path: /api
         pathType: Prefix
         backend:
           service:
-            name: url-shortener-app  # Service for the API backend
+            name: url-shortener-app
+            port:
+              number: 8080
+      - path: /
+        pathType: Exact
+        backend:
+          service:
+            name: skny-link-frontend
+            port:
+              number: 80
+      - path: / # catch-all rule for shortened URLs
+        pathType: Prefix
+        backend:
+          service:
+            name: url-shortener-app
             port:
               number: 8080
