@@ -2,6 +2,8 @@
 
 Welcome to **skny.link** – a **free, hyperscalable URL shortener** designed to be fast, reliable, and easy to use. 
 
+## Disclaimer 
+This project is hosted on a ridiculously cheap k8s spot instance with spotty ingress routing. When the spot gets outbid I will move it to a much more stable environment
 ## Purpose
 
 Emulating managed complexity to practice practical production engineering. This project is mostly for practice desigining a highly available, robust application.  
