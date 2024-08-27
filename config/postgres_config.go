@@ -38,12 +38,11 @@ func initDB(db *sql.DB) {
 	CREATE TABLE IF NOT EXISTS urls (
 		id SERIAL PRIMARY KEY,
 		url TEXT NOT NULL,
-		short_url TEXT NOT NULL,
+		short_url TEXT NOT NULL UNIQUE,
 		created_at TIMESTAMP NOT NULL,
 		last_accessed TIMESTAMP NOT NULL,
 		view_count INT NOT NULL
 	);`
-
 	_, err := db.Exec(createTableQuery)
 	if err != nil {
 		log.Fatalf("Could not create urls table: %v", err)

@@ -15,6 +15,7 @@ import (
 var redisClient = config.NewRedisClient()
 var store = storage.NewRedisStorage(redisClient)
 var databaseClient = config.NewPostgresClient()
+var databaseStore = storage.NewPostgresStorage(databaseClient)
 
 func ShortenURL(w http.ResponseWriter, r *http.Request) {
 	log.Println("Received request to shorten URL")
@@ -36,24 +37,34 @@ func ShortenURL(w http.ResponseWriter, r *http.Request) {
 
 	// Asynchronously insert the shortened URL into PostgreSQL
 	go func() {
-		urlData := models.URLDataEntry{
-			URL:          request.URL,
-			ShortURL:     shortURL,
-			CreatedAt:    time.Now(),
-			LastAccessed: time.Now(),
-			ViewCount:    0,
-		}
-		_, err := databaseClient.Exec("INSERT INTO urls (url, short_url, created_at, last_accessed, view_count) VALUES ($1, $2, $3, $4, $5)",
-			urlData.URL, urlData.ShortURL, urlData.CreatedAt, urlData.LastAccessed, urlData.ViewCount)
+		log.Printf("Looking for URL: %s\n", shortURL)
+		urlData, err := databaseStore.GetURLDataIfExist(shortURL)
 		if err != nil {
-			log.Printf("Error inserting URL into PostgreSQL: %v\n", err)
+			log.Printf("URL not found in PostgreSQL, inserting new entry: %v\n", err)
+			urlData = models.URLDataEntry{
+				URL:          request.URL,
+				ShortURL:     shortURL,
+				CreatedAt:    time.Now(),
+				LastAccessed: time.Now(),
+				ViewCount:    0,
+			}
+			if err := databaseStore.InsertURL(urlData); err != nil {
+				log.Printf("Error inserting URL into PostgreSQL: %v\n", err)
+			}
 		} else {
-			log.Printf("Successfully inserted URL into PostgreSQL: %s -> %s\n", urlData.URL, urlData.ShortURL)
+			log.Printf("Found short URL in PostgreSQL: %s\n", urlData.URL)
+			if err := databaseStore.UpdateViewCountByShortURL(urlData.ShortURL); err != nil {
+				log.Printf("Error updating view count in PostgreSQL: %v\n", err)
+			}
 		}
 	}()
 
 	response := models.URLResponse{ShortURL: shortURL}
-	json.NewEncoder(w).Encode(response)
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		http.Error(w, "Could not encode response", http.StatusInternalServerError)
+		log.Printf("Error encoding response: %v\n", err)
+		return
+	}
 	log.Printf("Successfully shortened URL: %s -> %s\n", request.URL, shortURL)
 }
 
@@ -72,11 +83,8 @@ func RedirectURL(w http.ResponseWriter, r *http.Request) {
 
 	// Asynchronously update the view count and last accessed time in PostgreSQL
 	go func() {
-		_, err := databaseClient.Exec("UPDATE urls SET view_count = view_count + 1, last_accessed = $1 WHERE short_url = $2", time.Now(), shortURL)
-		if err != nil {
-			log.Printf("Error updating view count in PostgreSQL: %v\n", err)
-		} else {
-			log.Printf("Successfully updated view count for short URL: %s\n", shortURL)
+		if err := databaseStore.UpdateViewCountByShortURL(shortURL); err != nil {
+			log.Printf("Error updating URL in PostgreSQL: %v\n", err)
 		}
 	}()
 
